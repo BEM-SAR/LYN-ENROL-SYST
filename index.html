@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LYN Languages You Need - Student Enrollment & Expiry System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts (Inter & Cairo for clean Arabic/English typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- html2pdf.js CDN for client-side PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lyn: {
+              blue: '#009ee3',
+              darkblue: '#007bb5',
+              yellow: '#f5a623',
+              grey: '#5a6268',
+              lightbg: '#f4f8fa',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Cairo', 'sans-serif'],
+            arabic: ['Cairo', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom status square styling with lighting and blur effects */
+    .status-sq {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    
+    /* Green status active / inactive */
+    .sq-green.active {
+      background-color: #10b981;
+      box-shadow: 0 0 10px #10b981, 0 0 20px rgba(16, 185, 129, 0.6);
+      opacity: 1;
+      filter: blur(0px);
+      transform: scale(1.08);
+    }
+    .sq-green.inactive {
+      background-color: #064e3b;
+      opacity: 0.25;
+      filter: blur(1px);
+    }
+
+    /* Amber status active / inactive */
+    .sq-amber.active {
+      background-color: #f59e0b;
+      box-shadow: 0 0 10px #f59e0b, 0 0 20px rgba(245, 158, 11, 0.6);
+      opacity: 1;
+      filter: blur(0px);
+      transform: scale(1.08);
+    }
+    .sq-amber.inactive {
+      background-color: #78350f;
+      opacity: 0.25;
+      filter: blur(1px);
+    }
+
+    /* Red status active / inactive */
+    .sq-red.active {
+      background-color: #ef4444;
+      box-shadow: 0 0 10px #ef4444, 0 0 20px rgba(239, 68, 68, 0.6);
+      opacity: 1;
+      filter: blur(0px);
+      transform: scale(1.08);
+    }
+    .sq-red.inactive {
+      background-color: #7f1d1d;
+      opacity: 0.25;
+      filter: blur(1px);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Receipt Print Styling */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #receipt-modal-content, #receipt-modal-content * {
+        visibility: visible;
+      }
+      #receipt-modal-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+        box-shadow: none !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased selection:bg-lyn-blue selection:text-white">
+
+  <!-- Header Container -->
+  <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Brand & Logo -->
+      <div class="flex items-center gap-4">
+        <!-- SVG / Image Logo Badge -->
+        <div id="logo-container" class="relative group cursor-pointer" title="Click to upload custom school logo">
+          <div id="svg-logo-wrapper" class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 transition-transform transform group-hover:scale-105">
+            <!-- Accurate Vector SVG Recreation of Lyn School Logo -->
+            <svg viewBox="0 0 300 300" class="w-full h-full drop-shadow-md" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.2"/>
+                </filter>
+              </defs>
+              <!-- Background Circle -->
+              <circle cx="150" cy="150" r="140" fill="#ffffff"/>
+              <!-- Outer Outer Accent Arc Blue -->
+              <path d="M 150 15 A 135 135 0 0 1 270 90" fill="none" stroke="#009ee3" stroke-width="12" stroke-linecap="round"/>
+              <path d="M 40 210 A 135 135 0 0 1 180 282" fill="none" stroke="#009ee3" stroke-width="14" stroke-linecap="round"/>
+              <!-- Yellow Outer Arc -->
+              <path d="M 22 105 A 135 135 0 0 1 42 175" fill="none" stroke="#f5a623" stroke-width="14" stroke-linecap="round"/>
+              <!-- Inner Grey Segment Arc Ring -->
+              <path d="M 100 42 A 115 115 0 0 1 260 125" fill="none" stroke="#5a6268" stroke-width="7" stroke-linecap="round"/>
+              <path d="M 50 190 A 115 115 0 0 1 240 260" fill="none" stroke="#6c757d" stroke-width="7" stroke-linecap="round"/>
+              
+              <!-- Inner White Circle -->
+              <circle cx="150" cy="150" r="105" fill="#ffffff" filter="url(#shadow)"/>
+              
+              <!-- LYN Logo Typography -->
+              <g font-family="Arial, sans-serif" font-weight="800">
+                <!-- Large Lyn Text -->
+                <text x="75" y="158" font-size="78" fill="#009ee3" letter-spacing="-2">L</text>
+                <text x="120" y="158" font-size="64" fill="#009ee3">y</text>
+                <text x="156" y="158" font-size="64" fill="#009ee3">n</text>
+              </g>
+
+              <!-- Subtext Lines -->
+              <text x="150" y="188" text-anchor="middle" font-family="'Cairo', 'Arial', sans-serif" font-weight="900" font-size="14" fill="#1e293b" letter-spacing="1">LANGUAGES YOU NEED</text>
+              <text x="150" y="206" text-anchor="middle" font-family="'Cairo', 'Arial', sans-serif" font-weight="700" font-size="11" fill="#475569" letter-spacing="2">ONLINE SCHOOL</text>
+              <text x="150" y="224" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="700" font-size="10" fill="#009ee3">Inquiries: +218 92 4 91 92 34</text>
+            </svg>
+          </div>
+
+          <!-- Custom Image Logo Container (Hidden by default) -->
+          <img id="custom-logo-img" src="" alt="School Logo" class="w-20 h-20 sm:w-24 sm:h-24 object-contain rounded-full hidden border border-slate-200 shadow-md"/>
+          
+          <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-semibold text-center p-1">
+            Change Logo
+          </div>
+          <input type="file" id="logo-file-input" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">LYN <span class="text-lyn-blue">ONLINE SCHOOL</span></h1>
+            <span class="bg-lyn-blue/10 text-lyn-blue text-xs font-bold px-2.5 py-0.5 rounded-full border border-lyn-blue/20">Portal v2.5</span>
+          </div>
+          <p class="text-xs sm:text-sm font-medium text-slate-500">Student Enrollment, Expiry Tracking & Bill Management</p>
+          <p class="text-xs font-bold text-lyn-blue mt-0.5 flex items-center gap-1">
+            <i class="fa-solid fa-phone text-[10px]"></i> Inquiries: +218 92 4 91 92 34
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Actions & Directory Picker Controls -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- Target Directory Picker Button -->
+        <button id="btn-set-folder" onclick="selectLocalFolder()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl transition shadow-sm border border-slate-700">
+          <i class="fa-solid fa-folder-open text-amber-400"></i>
+          <span id="folder-status-text">Target Folder: <strong class="text-amber-300">C:\LYN ENROLMENT</strong></span>
+        </button>
+
+        <!-- Pin Program Icon to Desktop Button -->
+        <button onclick="openPinDesktopModal()" class="inline-flex items-center gap-2 bg-lyn-blue hover:bg-lyn-darkblue text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-xl transition shadow-sm">
+          <i class="fa-solid fa-desktop text-amber-300"></i>
+          <span>Pin to Desktop</span>
+        </button>
+        
+        <!-- Load Sample Data Button -->
+        <button onclick="loadSampleData()" class="inline-flex items-center gap-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl transition">
+          <i class="fa-solid fa-wand-magic-sparkles text-lyn-blue"></i> Demo Data
+        </button>
+        
+        <!-- Clear Data Button -->
+        <button onclick="clearAllData()" class="inline-flex items-center gap-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl transition">
+          <i class="fa-solid fa-trash-can"></i> Clear
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-grow w-full">
+
+    <!-- Notification Toast Alert Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Quick Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Registered</p>
+          <h3 id="stat-total" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-lyn-blue flex items-center justify-center font-bold text-lg">
+          <i class="fa-solid fa-user-graduate"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Active (Weeks 1-2)</p>
+          <h3 id="stat-green" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+          <div class="w-4 h-4 rounded-sm bg-emerald-500 shadow-[0_0_8px_#10b981]"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Ending Soon (Week 3)</p>
+          <h3 id="stat-amber" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+          <div class="w-4 h-4 rounded-sm bg-amber-500 shadow-[0_0_8px_#f59e0b]"></div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-red-600 uppercase tracking-wider">Expired (Week 4+)</p>
+          <h3 id="stat-red" class="text-2xl font-bold text-red-600 mt-1">0</h3>
+        </div>
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-lg">
+          <div class="w-4 h-4 rounded-sm bg-red-500 shadow-[0_0_8px_#ef4444]"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Registration Form Card -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+      <!-- Card Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-lyn-darkblue to-lyn-blue p-4 sm:p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-amber-400 font-bold text-lg border border-white/20">
+            <i class="fa-solid fa-address-card"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold">New Student Enrollment Register</h2>
+            <p class="text-xs text-blue-100">Fill in student information. Arabic translation and session dates are generated automatically.</p>
+          </div>
+        </div>
+        
+        <!-- System Date Override Simulator Banner -->
+        <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs">
+          <i class="fa-regular fa-clock text-amber-300"></i>
+          <span class="font-medium text-slate-100">Simulation Date:</span>
+          <input type="date" id="simulation-date" onchange="updateAllStatuses()" class="bg-white/20 text-white rounded px-2 py-0.5 outline-none font-bold text-xs focus:bg-white focus:text-slate-900 transition">
+        </div>
+      </div>
+
+      <!-- Form Inputs Container (Structured matching required fields & responsive columns) -->
+      <form id="enrollment-form" onsubmit="handleFormSubmit(event)" class="p-4 sm:p-6 space-y-6">
+        
+        <!-- Input Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Field 1: English Name -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              1. Student Name (English) <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <input type="text" id="input-name-en" required lang="en"
+                     placeholder="e.g. Sarah Mohamed" 
+                     oninput="handleNameEnglishInput(this.value); triggerHistoryAutoLookup();"
+                     class="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-lyn-blue focus:ring-2 focus:ring-lyn-blue/20 outline-none transition font-medium">
+            </div>
+            <!-- Dynamic History Match Badge -->
+            <div id="history-match-badge" class="hidden mt-1.5 p-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between text-xs">
+              <span class="text-slate-700 font-medium" id="history-match-text">Past enrollment found!</span>
+              <button type="button" onclick="recallMatchedStudentHistory()" class="text-lyn-blue font-bold hover:underline">
+                <i class="fa-solid fa-clock-rotate-left"></i> Recall History
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Type in English to auto-translate.</p>
+          </div>
+
+          <!-- Field 2: Arabic Name (Auto Transliterated & Editable) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              2. Student Name (Arabic) <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-language"></i>
+              </span>
+              <input type="text" id="input-name-ar" required dir="rtl"
+                     placeholder="سارة محمد" 
+                     class="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-lyn-blue focus:ring-2 focus:ring-lyn-blue/20 outline-none transition font-arabic font-semibold bg-slate-50 focus:bg-white">
+            </div>
+            <p class="text-[11px] text-emerald-600 mt-1 flex items-center gap-1">
+              <i class="fa-solid fa-circle-check text-[10px]"></i> Auto-translated (Editable)
+            </p>
+          </div>
+
+          <!-- Field 3: Phone Number -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              3. Phone Number <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-phone"></i>
+              </span>
+              <input type="tel" id="input-phone" required 
+                     placeholder="+218 91 000 0000" 
+                     value="+218 "
+                     class="w-full pl-9 pr-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-lyn-blue focus:ring-2 focus:ring-lyn-blue/20 outline-none transition font-mono font-medium">
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Used for WhatsApp receipt delivery.</p>
+          </div>
+
+          <!-- Field 4: Student's Grade -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              4. Student Grade / Course <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </span>
+              <select id="input-grade" required class="w-full pl-9 pr-8 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-lyn-blue focus:ring-2 focus:ring-lyn-blue/20 outline-none transition font-medium bg-white appearance-none">
+                <option value="Beginner Level (A1)">Beginner Level (A1)</option>
+                <option value="Elementary (A2)">Elementary (A2)</option>
+                <option value="Intermediate (B1)" selected>Intermediate (B1)</option>
+                <option value="Upper Intermediate (B2)">Upper Intermediate (B2)</option>
+                <option value="Advanced (C1)">Advanced (C1)</option>
+                <option value="Kids & Juniors English">Kids & Juniors English</option>
+                <option value="IELTS / TOEFL Preparation">IELTS / TOEFL Preparation</option>
+                <option value="Business Communication">Business Communication</option>
+                <option value="Grade 1 - Primary">Grade 1 - Primary</option>
+                <option value="Grade 2 - Primary">Grade 2 - Primary</option>
+                <option value="Grade 3 - Secondary">Grade 3 - Secondary</option>
+              </select>
+              <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                <i class="fa-solid fa-chevron-down"></i>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Select course or grade level.</p>
+          </div>
+
+        </div>
+
+        <!-- Dates & Expiry Status Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          
+          <!-- Field 5: Date of Enrollment -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              5. Date of Enrollment <span class="text-red-500">*</span>
+            </label>
+            <input type="date" id="input-enroll-date" required lang="en"
+                   onchange="calculateSessionExpiry()"
+                   class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-lyn-blue focus:ring-2 focus:ring-lyn-blue/20 outline-none transition font-semibold bg-white">
+            <p id="enroll-date-formatted-en" class="text-[11px] font-bold text-lyn-blue mt-1">Formatted: --</p>
+          </div>
+
+          <!-- Field 6: Automatic Session Expiry Date (4 weeks / 28 days) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              6. Session Expiry Date <span class="text-lyn-blue">(Auto 4 Weeks)</span>
+            </label>
+            <input type="text" id="input-expiry-date" readonly lang="en"
+                   class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-white font-mono font-bold text-slate-800 outline-none cursor-not-allowed">
+            <p id="expiry-date-formatted-en" class="text-[11px] font-bold text-slate-500 mt-1">Strict English format (+28 days)</p>
+          </div>
+
+          <!-- Field 6: Automatic Session Expiry Date (4 weeks / 28 days) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              6. Session Expiry Date <span class="text-lyn-blue">(Auto 4 Weeks)</span>
+            </label>
+            <input type="text" id="input-expiry-date" readonly 
+                   class="w-full px-3 py-2.5 text-sm rounded-xl border border-slate-200 bg-white font-mono font-bold text-slate-800 outline-none cursor-not-allowed">
+            <p class="text-[11px] text-slate-500 mt-1">Calculated exactly +28 days.</p>
+          </div>
+
+          <!-- Field 7: Status Indicator Squares (Green, Amber, Red) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              7. Session Expiry Status Lights
+            </label>
+            <div class="flex items-center gap-3 bg-slate-900 p-2.5 rounded-xl border border-slate-800 shadow-inner">
+              <div class="flex items-center gap-2">
+                <!-- Green Square -->
+                <div id="preview-sq-green" class="status-sq sq-green active" title="Weeks 1-2: Active"></div>
+                <!-- Amber Square -->
+                <div id="preview-sq-amber" class="status-sq sq-amber inactive" title="Week 3: Ending Soon"></div>
+                <!-- Red Square -->
+                <div id="preview-sq-red" class="status-sq sq-red inactive" title="Week 4+: Expired"></div>
+              </div>
+              <span id="preview-status-label" class="text-xs font-bold text-emerald-400">
+                Week 1-2 (Active)
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Green (0-2 wks) &rarr; Amber (2-3 wks) &rarr; Red (3+ wks)</p>
+          </div>
+
+        </div>
+
+        <!-- Field 8: Mode of Fees Payment -->
+        <div class="space-y-3">
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            8. Mode of Fees Payment & Amount <span class="text-red-500">*</span>
+          </label>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            
+            <!-- Amount Input -->
+            <div class="relative sm:col-span-1">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 font-bold text-xs">LYD</span>
+              <input type="number" id="input-amount" required value="350" min="0" step="5"
+                     class="w-full pl-11 pr-3 py-2 text-sm rounded-xl border border-slate-300 focus:border-lyn-blue focus:ring-2 focus:ring-lyn-blue/20 outline-none font-bold">
+            </div>
+
+            <!-- Radio Options -->
+            <div class="sm:col-span-3 flex flex-wrap items-center gap-4 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                <input type="radio" name="payment_mode" value="Cash" checked onchange="toggleDelayedDate(false)" class="w-4 h-4 text-lyn-blue focus:ring-lyn-blue">
+                <span><i class="fa-solid fa-money-bill-wave text-emerald-600"></i> Cash</span>
+              </label>
+
+              <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                <input type="radio" name="payment_mode" value="Bank Transfer" onchange="toggleDelayedDate(false)" class="w-4 h-4 text-lyn-blue focus:ring-lyn-blue">
+                <span><i class="fa-solid fa-building-columns text-blue-600"></i> Bank Transfer</span>
+              </label>
+
+              <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-slate-700">
+                <input type="radio" name="payment_mode" value="Delayed" onchange="toggleDelayedDate(true)" class="w-4 h-4 text-lyn-blue focus:ring-lyn-blue">
+                <span><i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Delayed Payment</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Precise Delayed Date Picker (Shown only if Delayed selected) -->
+          <div id="delayed-date-container" class="hidden animate-fadeIn bg-amber-50 p-3.5 rounded-xl border border-amber-200">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div class="flex items-center gap-2 text-amber-800 text-xs font-bold">
+                <i class="fa-solid fa-calendar-day text-amber-600 text-sm"></i>
+                <span>Precise Payment Due Date:</span>
+              </div>
+              <input type="date" id="input-delayed-date" lang="en" class="bg-white border border-amber-300 text-slate-800 text-sm font-semibold px-3 py-1.5 rounded-lg outline-none focus:ring-2 focus:ring-amber-400">
+              <span id="delayed-date-formatted-en" class="text-xs font-bold text-amber-700">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prominent ENROLL Strip Submit Button -->
+        <div class="pt-2">
+          <button type="submit" id="btn-enroll-strip" class="w-full bg-gradient-to-r from-lyn-blue via-lyn-darkblue to-slate-900 hover:from-lyn-darkblue hover:to-black text-white font-black text-base sm:text-lg py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition transform active:scale-[0.99] flex items-center justify-center gap-3 uppercase tracking-wider group">
+            <i class="fa-solid fa-user-plus text-amber-400 group-hover:rotate-12 transition-transform text-xl"></i>
+            <span>ENROLL STUDENT & GENERATE LYN ENROL-BILL</span>
+            <i class="fa-solid fa-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- NEW SECTION: Student Previous Enrollment History Recall & Timeline -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-bold border border-amber-500/30">
+            <i class="fa-solid fa-history"></i>
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-bold">Student Previous Enrollment History & Recall Ledger</h2>
+            <p class="text-xs text-slate-400">Search student name or phone to recall all historical enrollments and sessions.</p>
+          </div>
+        </div>
+
+        <!-- Search Bar for History Recall -->
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+              <i class="fa-solid fa-search"></i>
+            </span>
+            <input type="text" id="history-search-input" onkeyup="renderHistoryLedger()" placeholder="Search history by name or phone..." class="pl-8 pr-3 py-1.5 text-xs sm:text-sm rounded-xl bg-slate-800 text-white border border-slate-700 focus:border-amber-400 outline-none w-56 sm:w-72">
+          </div>
+        </div>
+      </div>
+
+      <!-- History Ledger Content -->
+      <div id="history-ledger-container" class="p-4 sm:p-6 space-y-4 max-h-[420px] overflow-y-auto">
+        <!-- Dynamically rendered history cards -->
+      </div>
+    </section>
+
+    <!-- Enrolled Students Data Management Table Section -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-md overflow-hidden">
+      <!-- Section Header with Search & Filter -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-users text-lyn-blue"></i>
+            <span>Enrolled Students Master Record</span>
+          </h2>
+          <p class="text-xs text-slate-500">Real-time status updates based on enrollment date & simulation clock.</p>
+  <!-- PIN PROGRAM ICON TO DESKTOP MODAL -->
+  <div id="pin-desktop-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden my-8 transform transition-all">
+      <div class="bg-slate-900 text-white p-4 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-desktop text-amber-400 text-lg"></i>
+          <span class="font-bold text-base">Pin LYN Program Icon to Desktop</span>
+        </div>
+        <button onclick="closePinDesktopModal()" class="text-slate-400 hover:text-white text-lg transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-6">
+        <!-- Live Desktop Icon Preview -->
+        <div class="flex flex-col items-center justify-center p-6 bg-slate-100 rounded-2xl border border-slate-200 text-center">
+          <div class="w-20 h-20 bg-white p-2 rounded-2xl shadow-md border border-slate-200 flex items-center justify-center mb-2 transform hover:scale-105 transition">
+            <svg viewBox="0 0 300 300" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="150" cy="150" r="140" fill="#ffffff"/>
+              <path d="M 150 15 A 135 135 0 0 1 270 90" fill="none" stroke="#009ee3" stroke-width="14" stroke-linecap="round"/>
+              <path d="M 40 210 A 135 135 0 0 1 180 282" fill="none" stroke="#009ee3" stroke-width="14" stroke-linecap="round"/>
+              <path d="M 22 105 A 135 135 0 0 1 42 175" fill="none" stroke="#f5a623" stroke-width="14" stroke-linecap="round"/>
+              <circle cx="150" cy="150" r="105" fill="#ffffff"/>
+              <g font-family="Arial, sans-serif" font-weight="800">
+                <text x="75" y="158" font-size="78" fill="#009ee3">L</text>
+                <text x="120" y="158" font-size="64" fill="#009ee3">y</text>
+                <text x="156" y="158" font-size="64" fill="#009ee3">n</text>
+              </g>
+              <text x="150" y="188" text-anchor="middle" font-weight="900" font-size="14" fill="#1e293b">LANGUAGES YOU NEED</text>
+            </svg>
+          </div>
+          <p class="font-bold text-sm text-slate-800">LYN Online School Portal</p>
+          <p class="text-xs text-slate-500 font-mono">LYN-Enrollment-System.url</p>
+        </div>
+
+        <!-- Download & Pin Instructions -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Instructions to Pin Desktop Icon:</h4>
+          
+          <div class="space-y-2 text-xs text-slate-600">
+            <div class="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="bg-lyn-blue text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
+              <span>Click <strong>"Download Desktop Shortcut"</strong> below to download the program launcher.</span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="bg-lyn-blue text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
+              <span>Drag & drop the downloaded file from Downloads to your <strong>Desktop (C:\Users\Desktop)</strong>.</span>
+            </div>
+            <div class="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <span class="bg-lyn-blue text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">3</span>
+              <span><strong>Alternative (Browser Web App):</strong> Click browser menu (⋮) &rarr; <em>Cast, save and share</em> / <em>More Tools</em> &rarr; <strong>"Create shortcut..."</strong> check <em>Open as window</em>.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-100 p-4 px-6 border-t border-slate-200 flex items-center justify-between gap-3">
+        <button onclick="downloadDesktopShortcut()" class="w-full bg-lyn-blue hover:bg-lyn-darkblue text-white font-bold text-sm py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow">
+          <i class="fa-solid fa-download"></i> Download Desktop Shortcut (.url)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEIPT MODAL (LYN ENROL-BILL) -->
+  <div id="receipt-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden my-8 transform transition-all">
+      
+      <!-- Modal Action Header Bar (No-Print) -->
+      <div class="bg-slate-900 text-white p-3.5 px-6 flex items-center justify-between no-print border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice-dollar text-amber-400 text-lg"></i>
+          <span class="font-bold text-sm sm:text-base">Generated Receipt: LYN ENROL-BILL</span>
+        </div>
+        <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-white text-lg transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- RECEIPT PRINTABLE CONTAINER -->
+      <div id="receipt-modal-content" class="p-6 sm:p-8 bg-white text-slate-900 relative">
+        
+        <!-- Watermark background -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
+          <h1 class="text-9xl font-black text-slate-900 rotate-12">LYN</h1>
+        </div>
+
+        <!-- Receipt Header with Logo -->
+        <div class="border-b-2 border-slate-800 pb-4 mb-6 flex items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <!-- Embedded SVG Logo in Receipt -->
+            <div id="receipt-logo-holder" class="w-16 h-16 flex-shrink-0">
+              <svg viewBox="0 0 300 300" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="150" cy="150" r="140" fill="#ffffff"/>
+                <path d="M 150 15 A 135 135 0 0 1 270 90" fill="none" stroke="#009ee3" stroke-width="14" stroke-linecap="round"/>
+                <path d="M 40 210 A 135 135 0 0 1 180 282" fill="none" stroke="#009ee3" stroke-width="14" stroke-linecap="round"/>
+                <path d="M 22 105 A 135 135 0 0 1 42 175" fill="none" stroke="#f5a623" stroke-width="14" stroke-linecap="round"/>
+                <circle cx="150" cy="150" r="105" fill="#ffffff"/>
+                <g font-family="Arial, sans-serif" font-weight="800">
+                  <text x="75" y="158" font-size="78" fill="#009ee3">L</text>
+                  <text x="120" y="158" font-size="64" fill="#009ee3">y</text>
+                  <text x="156" y="158" font-size="64" fill="#009ee3">n</text>
+                </g>
+                <text x="150" y="188" text-anchor="middle" font-weight="900" font-size="14" fill="#1e293b">LANGUAGES YOU NEED</text>
+                <text x="150" y="206" text-anchor="middle" font-weight="700" font-size="11" fill="#475569">ONLINE SCHOOL</text>
+                <text x="150" y="224" text-anchor="middle" font-weight="700" font-size="10" fill="#009ee3">+218 92 4 91 92 34</text>
+              </svg>
+            </div>
+
+            <div>
+              <h2 class="text-xl font-black text-slate-900 tracking-wider">LYN ONLINE SCHOOL</h2>
+              <p class="text-xs font-bold text-lyn-blue">LANGUAGES YOU NEED</text>
+              <p class="text-[11px] text-slate-500">Inquiries: +218 92 4 91 92 34</p>
+            </div>
+          </div>
+
+          <div class="text-right">
+            <span class="inline-block bg-slate-900 text-white font-mono text-xs font-bold px-2.5 py-1 rounded">
+              LYN ENROL-BILL
+            </span>
+            <p id="receipt-id" class="text-xs font-mono text-slate-600 mt-1.5 font-bold">#LYN-00000</p>
+          </div>
+        </div>
+
+        <!-- Student & Session Details Table Grid -->
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <p class="text-[11px] text-slate-400 uppercase font-bold">Student Name (English)</p>
+              <p id="receipt-name-en" class="text-sm font-bold text-slate-800"></p>
+            </div>
+            <div dir="rtl" class="text-right">
+              <p class="text-[11px] text-slate-400 uppercase font-bold font-sans">اسم الطالب (بالعربية)</p>
+              <p id="receipt-name-ar" class="text-sm font-bold text-lyn-blue font-arabic"></p>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 uppercase font-bold">Phone Number</p>
+              <p id="receipt-phone" class="text-sm font-mono font-bold text-slate-700"></p>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 uppercase font-bold">Grade / Level</p>
+              <p id="receipt-grade" class="text-sm font-bold text-slate-700"></p>
+            </div>
+          </div>
+
+          <!-- Session Timing & Expiry -->
+          <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-blue-50/60 border border-blue-100">
+            <div>
+              <p class="text-[11px] text-blue-800 uppercase font-bold">Date of Enrollment</p>
+              <p id="receipt-enroll-date" class="text-sm font-bold text-slate-800"></p>
+            </div>
+            <div>
+              <p class="text-[11px] text-blue-800 uppercase font-bold">Session Expiry Date (+4 Wks)</p>
+              <p id="receipt-expiry-date" class="text-sm font-bold text-lyn-blue"></p>
+            </div>
+            <div class="col-span-2 flex items-center justify-between border-t border-blue-200/60 pt-2.5">
+              <span class="text-xs font-bold text-slate-700">Initial Session Status:</span>
+              <div class="flex items-center gap-2 bg-slate-900 px-3 py-1 rounded-lg">
+                <div id="receipt-sq-green" class="status-sq sq-green active"></div>
+                <div id="receipt-sq-amber" class="status-sq sq-amber inactive"></div>
+                <div id="receipt-sq-red" class="status-sq sq-red inactive"></div>
+                <span id="receipt-status-text" class="text-xs font-bold text-emerald-400 ml-1">Green (Active)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Breakdown -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="font-semibold text-slate-600">Mode of Payment:</span>
+              <span id="receipt-payment-mode" class="font-bold text-slate-900"></span>
+            </div>
+            <div id="receipt-delayed-row" class="flex justify-between items-center text-xs text-amber-700 font-medium hidden">
+              <span>Delayed Payment Due Date:</span>
+              <span id="receipt-delayed-date" class="font-bold font-mono"></span>
+            </div>
+            <div class="flex justify-between items-center text-sm border-t border-slate-200 pt-2 font-bold">
+              <span class="text-slate-800">Total Fees:</span>
+              <span id="receipt-amount" class="text-base text-emerald-600"></span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Receipt Footer & Timestamp -->
+        <div class="mt-8 pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-end justify-between gap-4 text-xs">
+          <div>
+            <p class="font-bold text-slate-800">LYN Languages You Need</p>
+            <p class="text-slate-500 text-[11px]">Authorized Student Billing Receipt</p>
+            <p class="text-[10px] text-slate-400 mt-1">Saved to: <span class="font-mono text-slate-600">C:\LYN ENROLMENT</span></p>
+          </div>
+
+          <div class="text-right">
+            <p class="text-[11px] text-slate-400 uppercase font-bold">Issuing Date & Time</p>
+            <p id="receipt-issue-date" class="font-mono font-bold text-slate-700 text-xs"></p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Bottom Action Strip (No Print) -->
+      <div class="bg-slate-100 p-4 px-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
+        <div class="flex items-center gap-2">
+          <!-- WhatsApp Share Button -->
+          <button id="btn-share-whatsapp" onclick="shareReceiptWhatsApp()" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow">
+            <i class="fa-brands fa-whatsapp text-lg"></i> Send Receipt via WhatsApp
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Download PDF Button -->
+          <button onclick="downloadReceiptPDF()" class="inline-flex items-center gap-2 bg-lyn-blue hover:bg-lyn-darkblue text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow">
+            <i class="fa-solid fa-file-pdf"></i> Download PDF
+          </button>
+          
+          <!-- Close Button -->
+          <button onclick="closeReceiptModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition">
+            Done
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    /* ==========================================================================
+       1. GLOBAL STATE & STORAGE KEYS
+       ========================================================================== */
+    const STORAGE_KEY = 'LYN_STUDENT_ENROLLMENTS_DB_V1';
+    let studentsDB = [];
+    let currentReceiptStudent = null;
+    let localDirectoryHandle = null;
+
+    // Strict English Months array for guaranteed English locale display
+    const ENGLISH_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const ENGLISH_MONTHS_FULL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    // Set today as default enrollment & simulation dates
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    /**
+     * Strict English Date Formatter Helper
+     * Guarantees English output regardless of browser/system locale settings
+     */
+    function formatDateEnglish(dateStr, style = 'medium') {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+
+      const year = parts[0];
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+
+      if (isNaN(monthIdx) || monthIdx < 0 || monthIdx > 11) return dateStr;
+
+      if (style === 'short') {
+        // e.g. 24/11/2026
+        return `${String(day).padStart(2, '0')}/${String(monthIdx + 1).padStart(2, '0')}/${year}`;
+      } else if (style === 'full') {
+        // e.g. November 24, 2026
+        return `${ENGLISH_MONTHS_FULL[monthIdx]} ${day}, ${year}`;
+      } else {
+        // e.g. Nov 24, 2026
+        return `${ENGLISH_MONTHS[monthIdx]} ${day}, ${year}`;
+      }
+    }
+
+    /* ==========================================================================
+       2. REAL-TIME ENGLISH TO ARABIC TRANSLITERATION ENGINE & DICTIONARY
+       ========================================================================== */
+    const nameDictionary = {
+      "sarah": "سارة", "sara": "سارة", "ahmed": "أحمد", "ahmad": "أحمد", "mohamed": "محمد",
+      "muhammad": "محمد", "mohammed": "محمد", "ali": "علي", "omar": "عمر", "fatima": "فاطمة",
+      "fatma": "فاطمة", "maryam": "مريم", "mariam": "مريم", "youssef": "يوسف", "yousef": "يوسف",
+      "adam": "آدم", "khaled": "خالد", "khalid": "خالد", "hassan": "حسن", "hussein": "حسين",
+      "hussain": "حسين", "tariq": "طارق", "tarek": "طارق", "zaid": "زيد", "nour": "نور",
+      "nur": "نور", "lina": "لينا", "leena": "لينا", "layla": "ليلى", "laila": "ليلى",
+      "sami": "سامي", "samir": "سمير", "rania": "رانيا", "rany": "راني", "amina": "أمينة",
+      "bilal": "بلال", "hamza": "حمزة", "ibrahim": "إإبراهيم", "malik": "مالك", "salma": "سلمى",
+      "yasmin": "ياسمين", "yasmine": "ياسمين", "mona": "منى", "nada": "ندى", "huda": "هدى",
+      "dina": "دينا", "reem": "ريم", "rim": "ريم", "tamer": "تامر", "waleed": "وليد",
+      "walid": "وليد", "mahmoud": "محمود", "mustafa": "مصطفى", "mostafa": "مصطفى",
+      "amr": "عمرو", "ziad": "زياد", "karim": "كريم", "kareem": "كريم", "nasser": "ناصر",
+      "farah": "فرح", "jana": "جنى", "habiba": "حبيبة", "salem": "سالم", "salim": "سالم",
+      "ayman": "أيمن", "ashraf": "أشرف", "saad": "سعد", "salah": "صلاح", "taha": "طه"
+    };
+
+    function transliteratePhonetic(str) {
+      if (!str) return '';
+      let s = str.toLowerCase().trim();
+      
+      // Multi-char replacements
+      s = s.replace(/kh/g, 'خ')
+           .replace(/gh/g, 'غ')
+           .replace(/sh/g, 'ش')
+           .replace(/th/g, 'ث')
+           .replace(/ch/g, 'تش')
+           .replace(/ph/g, 'ف')
+           .replace(/aa/g, 'ا')
+           .replace(/ee/g, 'ي')
+           .replace(/oo/g, 'و')
+           .replace(/ou/g, 'و')
+           .replace(/ai/g, 'اي');
+
+      // Single-char map
+      const map = {
+        'a': 'ا', 'b': 'ب', 'c': 'ك', 'd': 'د', 'e': 'إ', 'f': 'ف', 'g': 'ج',
+        'h': 'هـ', 'i': 'إ', 'j': 'ج', 'k': 'ك', 'l': 'ل', 'm': 'م', 'n': 'ن',
+        'o': 'و', 'p': 'ب', 'q': 'ق', 'r': 'ر', 's': 'س', 't': 'ت', 'u': 'و',
+        'v': 'ف', 'w': 'و', 'x': 'كس', 'y': 'ي', 'z': 'ز'
+      };
+
+      let res = '';
+      for (let char of s) {
+        res += map[char] || char;
+      }
+      return res;
+    }
+
+    function autoTranslateEnglishToArabic(englishName) {
+      if (!englishName.trim()) return '';
+      const parts = englishName.trim().split(/\s+/);
+      const arabicParts = parts.map(part => {
+        const clean = part.toLowerCase();
+        if (nameDictionary[clean]) {
+          return nameDictionary[clean];
+        }
+        return transliteratePhonetic(part);
+      });
+      return arabicParts.join(' ');
+    }
+
+    function handleNameEnglishInput(value) {
+      const arInput = document.getElementById('input-name-ar');
+      arInput.value = autoTranslateEnglishToArabic(value);
+    }
+
+    /* ==========================================================================
+       3. DATE CALCULATIONS & STATUS LIGHT LOGIC
+       ========================================================================== */
+    function calculateSessionExpiry() {
+      const enrollVal = document.getElementById('input-enroll-date').value;
+      if (!enrollVal) return;
+
+      const enrollDate = new Date(enrollVal);
+      // Expiry is exactly 4 weeks (28 days) later
+      const expiryDate = new Date(enrollDate);
+      expiryDate.setDate(expiryDate.getDate() + 28);
+
+      const expiryStr = expiryDate.toISOString().split('T')[0];
+      document.getElementById('input-expiry-date').value = formatDateEnglish(expiryStr, 'full');
+
+      // Update formatted English helpers below date inputs
+      document.getElementById('enroll-date-formatted-en').textContent = 'Formatted: ' + formatDateEnglish(enrollVal, 'full');
+      document.getElementById('expiry-date-formatted-en').textContent = 'Expiry: ' + formatDateEnglish(expiryStr, 'full');
+
+      updatePreviewStatusLights(enrollVal);
+    }
+
+    /**
+     * Determines status based on days elapsed between enrollment date and current/simulated date.
+     * Logic:
+     * - Days 0 - 13 (Weeks 1 & 2): Green lit (Active), Amber/Red dimmed & blurred
+     * - Days 14 - 20 (Week 3): Green dimmed, Amber lit (Ending Soon), Red dimmed
+     * - Days 21+ (Week 4+ / End of 3rd week onwards): Green/Amber dimmed, Red lit (Expired)
+     */
+    function calculateStatusFromDates(enrollDateStr, referenceDateStr) {
+      const enroll = new Date(enrollDateStr);
+      const ref = new Date(referenceDateStr || getSelectedSimulationDate());
+      
+      // Calculate full days difference
+      const diffTime = ref.getTime() - enroll.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 13) {
+        return { status: 'GREEN', text: 'Week 1-2 (Active)', daysLeft: 28 - diffDays };
+      } else if (diffDays >= 14 && diffDays <= 20) {
+        return { status: 'AMBER', text: 'Week 3 (Amber Alert)', daysLeft: 28 - diffDays };
+      } else {
+        return { status: 'RED', text: 'Week 4+ (Expired)', daysLeft: Math.max(0, 28 - diffDays) };
+      }
+    }
+
+    function updatePreviewStatusLights(enrollDateStr) {
+      const simDate = getSelectedSimulationDate();
+      const { status, text } = calculateStatusFromDates(enrollDateStr, simDate);
+
+      const gSq = document.getElementById('preview-sq-green');
+      const aSq = document.getElementById('preview-sq-amber');
+      const rSq = document.getElementById('preview-sq-red');
+      const label = document.getElementById('preview-status-label');
+
+      // Reset
+      gSq.className = 'status-sq sq-green inactive';
+      aSq.className = 'status-sq sq-amber inactive';
+      rSq.className = 'status-sq sq-red inactive';
+
+      if (status === 'GREEN') {
+        gSq.className = 'status-sq sq-green active';
+        label.className = 'text-xs font-bold text-emerald-400';
+      } else if (status === 'AMBER') {
+        aSq.className = 'status-sq sq-amber active';
+        label.className = 'text-xs font-bold text-amber-400';
+      } else {
+        rSq.className = 'status-sq sq-red active';
+        label.className = 'text-xs font-bold text-red-400';
+      }
+
+      label.textContent = text;
+    }
+
+    function getSelectedSimulationDate() {
+      const simInput = document.getElementById('simulation-date');
+      return simInput.value || todayStr;
+    }
+
+    function updateAllStatuses() {
+      // Re-evaluate preview
+      calculateSessionExpiry();
+      // Re-render table with updated simulation date statuses
+      renderTable();
+      showToast('Simulation date updated!', 'info');
+    }
+
+    /* ==========================================================================
+       4. PAYMENT MODE TOGGLE
+       ========================================================================== */
+    function toggleDelayedDate(isDelayed) {
+      const container = document.getElementById('delayed-date-container');
+      const delayedInput = document.getElementById('input-delayed-date');
+      const delayedFormatEn = document.getElementById('delayed-date-formatted-en');
+      
+      if (isDelayed) {
+        container.classList.remove('hidden');
+        delayedInput.required = true;
+        // Default delayed date to 2 weeks from today if empty
+        if (!delayedInput.value) {
+          const d = new Date();
+          d.setDate(d.getDate() + 14);
+          delayedInput.value = d.toISOString().split('T')[0];
+        }
+        delayedFormatEn.textContent = formatDateEnglish(delayedInput.value, 'full');
+        delayedInput.onchange = function() {
+          delayedFormatEn.textContent = formatDateEnglish(this.value, 'full');
+        };
+      } else {
+        container.classList.add('hidden');
+        delayedInput.required = false;
+      }
+    }
+
+    /* ==========================================================================
+       4. STUDENT HISTORY RECALL & AUTO-LOOKUP LOGIC
+       ========================================================================== */
+    function triggerHistoryAutoLookup() {
+      const nameVal = document.getElementById('input-name-en').value.trim().toLowerCase();
+      const badge = document.getElementById('history-match-badge');
+      const text = document.getElementById('history-match-text');
+
+      if (nameVal.length < 2) {
+        badge.classList.add('hidden');
+        return;
+      }
+
+      const matches = studentsDB.filter(s => s.nameEn.toLowerCase().includes(nameVal));
+      if (matches.length > 0) {
+        text.textContent = `Found ${matches.length} past enrollment record(s) for "${matches[0].nameEn}"!`;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function recallMatchedStudentHistory() {
+      const nameVal = document.getElementById('input-name-en').value.trim().toLowerCase();
+      const match = studentsDB.find(s => s.nameEn.toLowerCase().includes(nameVal));
+      if (match) {
+        loadStudentToForm(match);
+      }
+    }
+
+    function loadStudentToForm(student) {
+      document.getElementById('input-name-en').value = student.nameEn;
+      document.getElementById('input-name-ar').value = student.nameAr;
+      document.getElementById('input-phone').value = student.phone;
+      document.getElementById('input-grade').value = student.grade;
+      document.getElementById('input-amount').value = student.amount;
+      
+      showToast(`Loaded ${student.nameEn}'s profile into form!`, 'info');
+      document.getElementById('enrollment-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderHistoryLedger() {
+      const container = document.getElementById('history-ledger-container');
+      const query = (document.getElementById('history-search-input')?.value || '').toLowerCase();
+      const simDate = getSelectedSimulationDate();
+
+      container.innerHTML = '';
+
+      // Group history by normalized phone or name
+      const groups = {};
+      studentsDB.forEach(st => {
+        const key = st.phone.replace(/[^\d]/g, '') || st.nameEn.toLowerCase();
+        if (!groups[key]) {
+          groups[key] = {
+            studentNameEn: st.nameEn,
+            studentNameAr: st.nameAr,
+            phone: st.phone,
+            records: []
+          };
+        }
+        groups[key].records.push(st);
+      });
+
+      const groupKeys = Object.keys(groups).filter(k => {
+        const g = groups[k];
+        return g.studentNameEn.toLowerCase().includes(query) ||
+               g.studentNameAr.toLowerCase().includes(query) ||
+               g.phone.includes(query);
+      });
+
+      if (groupKeys.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <i class="fa-solid fa-clock-rotate-left text-3xl mb-2 text-slate-300"></i>
+            <p class="text-xs font-semibold">No enrollment history matches found.</p>
+          </div>
+        `;
+        return;
+      }
+
+      groupKeys.forEach(key => {
+        const group = groups[key];
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3';
+
+        let recordsHtml = '';
+        group.records.forEach((rec, idx) => {
+          const { status, text } = calculateStatusFromDates(rec.enrollDate, simDate);
+          recordsHtml += `
+            <div class="bg-white p-3 rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-800">Session #${group.records.length - idx}</span>
+                  <span class="bg-blue-50 text-lyn-blue px-2 py-0.5 rounded font-semibold text-[11px]">${rec.grade}</span>
+                  <span class="font-mono text-slate-400 text-[10px]">${rec.id}</span>
+                </div>
+                <div class="text-slate-500 font-medium">
+                  Enrollment: <strong class="text-slate-700">${formatDateEnglish(rec.enrollDate)}</strong> | 
+                  Expiry: <strong class="text-lyn-blue">${formatDateEnglish(rec.expiryDate)}</strong>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg" title="${text}">
+                  <div class="status-sq sq-green ${status === 'GREEN' ? 'active' : 'inactive'}"></div>
+                  <div class="status-sq sq-amber ${status === 'AMBER' ? 'active' : 'inactive'}"></div>
+                  <div class="status-sq sq-red ${status === 'RED' ? 'active' : 'inactive'}"></div>
+                </div>
+
+                <div class="flex items-center gap-1">
+                  <button onclick='viewReceiptById("${rec.id}")' class="px-2 py-1 bg-lyn-blue text-white rounded font-bold text-[11px] hover:bg-lyn-darkblue transition">
+                    <i class="fa-solid fa-receipt"></i> Bill
+                  </button>
+                  <button onclick='loadStudentToForm(${JSON.stringify(rec)})' class="px-2 py-1 bg-slate-200 text-slate-700 rounded font-bold text-[11px] hover:bg-slate-300 transition" title="Load into form">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Load
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <div>
+              <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <span>${escapeHtml(group.studentNameEn)}</span>
+                <span class="text-lyn-blue font-arabic text-xs" dir="rtl">(${escapeHtml(group.studentNameAr)})</span>
+              </h3>
+              <p class="text-xs font-mono text-slate-500">${escapeHtml(group.phone)} &bull; ${group.records.length} Total Enrollment(s)</p>
+            </div>
+            <button onclick='loadStudentToForm(${JSON.stringify(group.records[0])})' class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+              <i class="fa-solid fa-user-pen"></i> Re-Enroll Student
+            </button>
+          </div>
+          <div class="space-y-2">
+            ${recordsHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* ==========================================================================
+       5. PIN PROGRAM ICON TO DESKTOP LOGIC
+       ========================================================================== */
+    function openPinDesktopModal() {
+      document.getElementById('pin-desktop-modal').classList.remove('hidden');
+    }
+
+    function closePinDesktopModal() {
+      document.getElementById('pin-desktop-modal').classList.add('hidden');
+    }
+
+    function downloadDesktopShortcut() {
+      const urlContent = `[InternetShortcut]\nURL=${window.location.href}\nIconIndex=0\nIconFile=${window.location.href}\n`;
+      const blob = new Blob([urlContent], { type: 'application/x-mswinurl' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'LYN Online School Portal.url';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast('Downloaded LYN Desktop Shortcut file!', 'success');
+    }
+
+    /* ==========================================================================
+       6. FORM SUBMISSION & ENROLLMENT LOGIC
+       ========================================================================== */
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const nameEn = document.getElementById('input-name-en').value.trim();
+      const nameAr = document.getElementById('input-name-ar').value.trim();
+      const phone = document.getElementById('input-phone').value.trim();
+      const grade = document.getElementById('input-grade').value;
+      const enrollDate = document.getElementById('input-enroll-date').value;
+      const amount = document.getElementById('input-amount').value;
+      
+      const paymentModeEl = document.querySelector('input[name="payment_mode"]:checked');
+      const paymentMode = paymentModeEl ? paymentModeEl.value : 'Cash';
+      let delayedDate = '';
+
+      if (paymentMode === 'Delayed') {
+        delayedDate = document.getElementById('input-delayed-date').value;
+        if (!delayedDate) {
+          showToast('Please specify the delayed payment date!', 'error');
+          return;
+        }
+      }
+
+      // Calculate expiry date (+28 days)
+      const eDateObj = new Date(enrollDate);
+      const expDateObj = new Date(eDateObj);
+      expDateObj.setDate(expDateObj.getDate() + 28);
+      const expiryDate = expDateObj.toISOString().split('T')[0];
+
+      // Unique Student Record ID
+      const receiptId = 'LYN-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+      const issueTimestamp = new Date().toLocaleString('en-GB', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      });
+
+      const newStudent = {
+        id: receiptId,
+        nameEn,
+        nameAr,
+        phone,
+        grade,
+        enrollDate,
+        expiryDate,
+        amount,
+        paymentMode,
+        delayedDate,
+        issueTimestamp,
+        createdAt: new Date().toISOString()
+      };
+
+      // Add to database array
+      studentsDB.unshift(newStudent);
+      saveDB();
+      renderTable();
+      renderHistoryLedger();
+      updateStats();
+<!-- ... existing code ...=========
+       7. TABLE RENDERING & DATABASE MANAGMENT
+       ========================================================================== */
+    function renderTable() {
+      const tbody = document.getElementById('students-table-body');
+      const emptyState = document.getElementById('table-empty-state');
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filterStatus = document.getElementById('filter-status').value;
+      const simDate = getSelectedSimulationDate();
+
+      tbody.innerHTML = '';
+
+      const filtered = studentsDB.filter(st => {
+        const matchesSearch = st.nameEn.toLowerCase().includes(search) ||
+                              st.nameAr.toLowerCase().includes(search) ||
+                              st.phone.includes(search);
+        
+        const { status } = calculateStatusFromDates(st.enrollDate, simDate);
+        const matchesStatus = (filterStatus === 'ALL') || (status === filterStatus);
+
+        return matchesSearch && matchesStatus;
+      });
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filtered.forEach(st => {
+        const { status, text } = calculateStatusFromDates(st.enrollDate, simDate);
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-200';
+
+        // Payment status badge
+        let paymentBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800"><i class="fa-solid fa-check text-[10px]"></i> ${st.paymentMode}</span>`;
+        if (st.paymentMode === 'Delayed') {
+          paymentBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800" title="Due: ${formatDateEnglish(st.delayedDate)}"><i class="fa-solid fa-clock text-[10px]"></i> Delayed (${formatDateEnglish(st.delayedDate)})</span>`;
+        }
+
+        tr.innerHTML = `
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-800">${escapeHtml(st.nameEn)}</div>
+            <div class="text-xs text-lyn-blue font-arabic font-semibold" dir="rtl">${escapeHtml(st.nameAr)}</div>
+          </td>
+          <td class="py-3 px-4 font-mono font-medium text-slate-700">
+            ${escapeHtml(st.phone)}
+          </td>
+          <td class="py-3 px-4 text-slate-700 font-medium">
+            ${escapeHtml(st.grade)}
+          </td>
+          <td class="py-3 px-4 font-mono text-slate-600">
+            ${formatDateEnglish(st.enrollDate)}
+          </td>
+          <td class="py-3 px-4 font-mono font-bold text-slate-800">
+            ${formatDateEnglish(st.expiryDate)}
+          </td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1.5 bg-slate-900 px-2.5 py-1 rounded-lg inline-flex" title="${text}">
+              <div class="status-sq sq-green ${status === 'GREEN' ? 'active' : 'inactive'}"></div>
+              <div class="status-sq sq-amber ${status === 'AMBER' ? 'active' : 'inactive'}"></div>
+              <div class="status-sq sq-red ${status === 'RED' ? 'active' : 'inactive'}"></div>
+            </div>
+          </td>
+          <td class="py-3 px-4">
+            ${paymentBadge}
+            <div class="text-[11px] font-bold text-slate-500 mt-0.5">${st.amount} LYD</div>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick='viewReceiptById("${st.id}")' class="p-1.5 bg-blue-50 text-lyn-blue hover:bg-lyn-blue hover:text-white rounded-lg transition" title="View / Print Receipt">
+                <i class="fa-solid fa-receipt"></i>
+              </button>
+              <button onclick='shareWhatsAppDirect("${st.phone}", "${st.nameEn}", "${st.enrollDate}", "${st.expiryDate}", "${st.amount}")' class="p-1.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-lg transition" title="Send WhatsApp Message">
+                <i class="fa-brands fa-whatsapp"></i>
+              </button>
+              <button onclick='deleteStudent("${st.id}")' class="p-1.5 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition" title="Delete Record">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updateStats();
+    }
+
+    function updateStats() {
+      const simDate = getSelectedSimulationDate();
+      let total = studentsDB.length;
+      let green = 0, amber = 0, red = 0;
+
+      studentsDB.forEach(st => {
+        const { status } = calculateStatusFromDates(st.enrollDate, simDate);
+        if (status === 'GREEN') green++;
+        else if (status === 'AMBER') amber++;
+        else if (status === 'RED') red++;
+      });
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-green').textContent = green;
+      document.getElementById('stat-amber').textContent = amber;
+      document.getElementById('stat-red').textContent = red;
+    }
+
+    function saveDB() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(studentsDB));
+    }
+
+    function loadDB() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (data) {
+        try {
+          studentsDB = JSON.parse(data);
+        } catch (e) {
+          studentsDB = [];
+        }
+      }
+    }
+
+    function deleteStudent(id) {
+      if (confirm('Are you sure you want to delete this student record?')) {
+        studentsDB = studentsDB.filter(s => s.id !== id);
+        saveDB();
+        renderTable();
+        showToast('Record deleted.', 'info');
+      }
+    }
+
+    function clearAllData() {
+      if (confirm('Clear all student enrollment records? This cannot be undone.')) {
+        studentsDB = [];
+        saveDB();
+        renderTable();
+        showToast('All records cleared.', 'info');
+      }
+    }
+
+    /* ==========================================================================
+       7. RECEIPT MODAL & AUTOMATIC SHARE / PDF LOGIC
+       ========================================================================== */
+    function viewReceiptById(id) {
+      const student = studentsDB.find(s => s.id === id);
+      if (student) {
+        openReceiptModal(student, false);
+      }
+    }
+
+    function openReceiptModal(student, autoProcess = false) {
+      currentReceiptStudent = student;
+
+      document.getElementById('receipt-id').textContent = '#' + student.id;
+      document.getElementById('receipt-name-en').textContent = student.nameEn;
+      document.getElementById('receipt-name-ar').textContent = student.nameAr;
+      document.getElementById('receipt-phone').textContent = student.phone;
+      document.getElementById('receipt-grade').textContent = student.grade;
+      document.getElementById('receipt-enroll-date').textContent = formatDateEnglish(student.enrollDate, 'full');
+      document.getElementById('receipt-expiry-date').textContent = formatDateEnglish(student.expiryDate, 'full');
+      document.getElementById('receipt-amount').textContent = student.amount + ' LYD';
+      document.getElementById('receipt-issue-date').textContent = student.issueTimestamp || new Date().toLocaleString();
+
+      // Status indicator in receipt
+      const { status, text } = calculateStatusFromDates(student.enrollDate, getSelectedSimulationDate());
+      const rGreen = document.getElementById('receipt-sq-green');
+      const rAmber = document.getElementById('receipt-sq-amber');
+      const rRed = document.getElementById('receipt-sq-red');
+      const rText = document.getElementById('receipt-status-text');
+
+      rGreen.className = 'status-sq sq-green inactive';
+      rAmber.className = 'status-sq sq-amber inactive';
+      rRed.className = 'status-sq sq-red inactive';
+
+      if (status === 'GREEN') {
+        rGreen.className = 'status-sq sq-green active';
+        rText.textContent = 'Green (Active)';
+        rText.className = 'text-xs font-bold text-emerald-400 ml-1';
+      } else if (status === 'AMBER') {
+        rAmber.className = 'status-sq sq-amber active';
+        rText.textContent = 'Amber (Ending Soon)';
+        rText.className = 'text-xs font-bold text-amber-400 ml-1';
+      } else {
+        rRed.className = 'status-sq sq-red active';
+        rText.textContent = 'Red (Expired)';
+        rText.className = 'text-xs font-bold text-red-400 ml-1';
+      }
+
+      // Payment Details
+      document.getElementById('receipt-payment-mode').textContent = student.paymentMode;
+      const delayedRow = document.getElementById('receipt-delayed-row');
+      if (student.paymentMode === 'Delayed') {
+        delayedRow.classList.remove('hidden');
+        document.getElementById('receipt-delayed-date').textContent = formatDateEnglish(student.delayedDate, 'full');
+      } else {
+        delayedRow.classList.add('hidden');
+      }
+
+      // Unhide Modal
+      document.getElementById('receipt-modal').classList.remove('hidden');
+
+      if (autoProcess) {
+        // Automatically attempt saving to local folder or downloading PDF
+        setTimeout(() => {
+          downloadReceiptPDF(true);
+          shareReceiptWhatsApp(true);
+        }, 400);
+      }
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    /* PDF Generation & File Save */
+    async function downloadReceiptPDF(silent = false) {
+      if (!currentReceiptStudent) return;
+      const element = document.getElementById('receipt-modal-content');
+      const filename = `LYN-ENROL-BILL_${currentReceiptStudent.nameEn.replace(/\s+/g, '_')}.pdf`;
+
+      const opt = {
+        margin:       [0.3, 0.3, 0.3, 0.3],
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      try {
+        // If File System Access handle is available, attempt write to local directory LYN ENROLMENT
+        if (localDirectoryHandle) {
+          try {
+            const pdfWorker = html2pdf().set(opt).from(element);
+            const pdfBlob = await pdfWorker.output('blob');
+            
+            const fileHandle = await localDirectoryHandle.getFileHandle(filename, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(pdfBlob);
+            await writable.close();
+            
+            showToast(`PDF saved directly to C:\\LYN ENROLMENT\\${filename}`, 'success');
+          } catch (err) {
+            console.warn('Folder write fallback to standard download:', err);
+            html2pdf().set(opt).from(element).save();
+          }
+        } else {
+          // Standard download fallback
+          html2pdf().set(opt).from(element).save();
+          if (!silent) {
+            showToast('Downloading LYN ENROL-BILL PDF...', 'success');
+          }
+        }
+      } catch (err) {
+        console.error('PDF error:', err);
+        window.print();
+      }
+    }
+
+    /* WhatsApp Receipt Delivery */
+    function shareReceiptWhatsApp(auto = false) {
+      if (!currentReceiptStudent) return;
+      const st = currentReceiptStudent;
+      const cleanPhone = st.phone.replace(/[^\d+]/g, '');
+
+      const message = `*LYN ONLINE SCHOOL - ENROLMENT RECEIPT* 🎓\n` +
+                      `------------------------------------\n` +
+                      `*Receipt No:* #${st.id}\n` +
+                      `*Student:* ${st.nameEn} (${st.nameAr})\n` +
+                      `*Course/Grade:* ${st.grade}\n` +
+                      `*Enrollment Date:* ${formatDateEnglish(st.enrollDate, 'full')}\n` +
+                      `*Session Expiry Date:* ${formatDateEnglish(st.expiryDate, 'full')} (4 Weeks)\n` +
+                      `*Payment Mode:* ${st.paymentMode}${st.paymentMode === 'Delayed' ? ' (Due: ' + formatDateEnglish(st.delayedDate, 'full') + ')' : ''}\n` +
+                      `*Total Fees:* ${st.amount} LYD\n` +
+                      `*Issued On:* ${st.issueTimestamp}\n` +
+                      `------------------------------------\n` +
+                      `Thank you for enrolling with LYN School!\n` +
+                      `Inquiries: +218 92 4 91 92 34`;
+
+      const encoded = encodeURIComponent(message);
+      const url = `https://wa.me/${cleanPhone.replace('+', '')}?text=${encoded}`;
+
+      if (auto) {
+        const win = window.open(url, '_blank');
+        if (!win) {
+          showToast('Click "Send via WhatsApp" button to share receipt!', 'info');
+        }
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+
+    function shareWhatsAppDirect(phone, name, enroll, expiry, amount) {
+      const cleanPhone = phone.replace(/[^\d+]/g, '');
+      const msg = `Hello ${name}, your enrollment at LYN School is confirmed.\nEnrollment Date: ${formatDateEnglish(enroll, 'full')}\nSession Expiry: ${formatDateEnglish(expiry, 'full')}\nFees: ${amount} LYD.\nInquiries: +218 92 4 91 92 34`;
+      window.open(`https://wa.me/${cleanPhone.replace('+', '')}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function deleteStudent(id) {
+      if (confirm('Are you sure you want to delete this student record?')) {
+        studentsDB = studentsDB.filter(s => s.id !== id);
+        saveDB();
+        renderTable();
+        renderHistoryLedger();
+        showToast('Record deleted.', 'info');
+      }
+    }
+
+    function clearAllData() {
+      if (confirm('Clear all student enrollment records? This cannot be undone.')) {
+        studentsDB = [];
+        saveDB();
+        renderTable();
+        renderHistoryLedger();
+        showToast('All records cleared.', 'info');
+      }
+    }
+
+    /* ==========================================================================
+       9. LOGO CUSTOMIZATION LOGIC
+       ========================================================================== */
+    document.getElementById('logo-container').addEventListener('click', () => {
+      document.getElementById('logo-file-input').click();
+    });
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const svgWrapper = document.getElementById('svg-logo-wrapper');
+        const customImg = document.getElementById('custom-logo-img');
+        
+        customImg.src = e.target.result;
+        customImg.classList.remove('hidden');
+        svgWrapper.classList.add('hidden');
+
+        // Update receipt logo holder
+        const receiptHolder = document.getElementById('receipt-logo-holder');
+        receiptHolder.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain rounded-full">`;
+        
+        showToast('School logo updated!', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* ==========================================================================
+       10. UTILITIES, SAMPLE DATA & INITIALIZATION
+       ========================================================================== */
+    function formatDateDisplay(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let bg = 'bg-slate-900 text-white border-slate-700';
+      let icon = '<i class="fa-solid fa-circle-info text-lyn-blue"></i>';
+
+      if (type === 'success') {
+        bg = 'bg-emerald-900 text-emerald-100 border-emerald-700';
+        icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+      } else if (type === 'error') {
+        bg = 'bg-red-900 text-red-100 border-red-700';
+        icon = '<i class="fa-solid fa-circle-exclamation text-red-400"></i>';
+      }
+
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold ${bg} transition-all transform translate-y-2 opacity-0 duration-300`;
+      toast.innerHTML = `${icon} <span>${escapeHtml(message)}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function loadSampleData() {
+      const today = new Date();
+      
+      // Sample 1: Active (Green - enrolled 5 days ago)
+      const d1 = new Date(); d1.setDate(today.getDate() - 5);
+      const e1 = d1.toISOString().split('T')[0];
+      const exp1 = new Date(d1); exp1.setDate(d1.getDate() + 28);
+
+      // Sample 2: Amber Alert (Enrolled 16 days ago)
+      const d2 = new Date(); d2.setDate(today.getDate() - 16);
+      const e2 = d2.toISOString().split('T')[0];
+      const exp2 = new Date(d2); exp2.setDate(d2.getDate() + 28);
+
+      // Sample 3: Red Expired (Enrolled 30 days ago)
+      const d3 = new Date(); d3.setDate(today.getDate() - 30);
+      const e3 = d3.toISOString().split('T')[0];
+      const exp3 = new Date(d3); exp3.setDate(d3.getDate() + 28);
+
+      studentsDB = [
+        {
+          id: 'LYN-2026-1001',
+          nameEn: 'Sarah Mohamed',
+          nameAr: 'سارة محمد',
+          phone: '+218 91 234 5678',
+          grade: 'Intermediate (B1)',
+          enrollDate: e1,
+          expiryDate: exp1.toISOString().split('T')[0],
+          amount: '350',
+          paymentMode: 'Cash',
+          delayedDate: '',
+          issueTimestamp: d1.toLocaleDateString() + ', 10:30 AM'
+        },
+        {
+          id: 'LYN-2026-1002',
+          nameEn: 'Omar Hassan',
+          nameAr: 'عمر حسن',
+          phone: '+218 92 987 6543',
+          grade: 'Upper Intermediate (B2)',
+          enrollDate: e2,
+          expiryDate: exp2.toISOString().split('T')[0],
+          amount: '400',
+          paymentMode: 'Bank Transfer',
+          delayedDate: '',
+          issueTimestamp: d2.toLocaleDateString() + ', 02:15 PM'
+        },
+        {
+          id: 'LYN-2026-1003',
+          nameEn: 'Malik Tariq',
+          nameAr: 'مالك طارق',
+          phone: '+218 94 555 1212',
+          grade: 'IELTS / TOEFL Preparation',
+          enrollDate: e3,
+          expiryDate: exp3.toISOString().split('T')[0],
+          amount: '500',
+          paymentMode: 'Delayed',
+          delayedDate: new Date().toISOString().split('T')[0],
+          issueTimestamp: d3.toLocaleDateString() + ', 11:00 AM'
+        }
+      ];
+
+      saveDB();
+      renderTable();
+      showToast('Sample students loaded successfully!', 'success');
+    }
+
+    // App Startup Initialization
+    window.onload = function() {
+      // Set default inputs
+      document.getElementById('input-enroll-date').value = todayStr;
+      document.getElementById('simulation-date').value = todayStr;
+      
+      calculateSessionExpiry();
+      loadDB();
+
+      // If empty DB, load initial demo records for instant visual setup
+      if (studentsDB.length === 0) {
+        loadSampleData();
+      } else {
+        renderTable();
+        renderHistoryLedger();
+      }
+    };
+  </script>
+</body>
+</html>
